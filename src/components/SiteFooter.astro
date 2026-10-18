@@ -1,0 +1,34 @@
+---
+import { url } from '../lib/url.js';
+import { categories } from '../data/resources.js';
+---
+<footer class="site-footer">
+  <div class="wrap cols">
+    <div>
+      <h4>About this guide</h4>
+      <p>
+        A volunteer-spirited directory of Suffield's civic life, inspired by the
+        local tradition of a watchful community newspaper. Details are drawn from
+        public sources — please confirm hours and contacts before you visit.
+      </p>
+    </div>
+    <div>
+      <h4>Categories</h4>
+      <ul>
+        {categories.slice(0, 5).map((c) => <li><a href={url(`#${c.id}`)}>{c.label}</a></li>)}
+      </ul>
+    </div>
+    <div>
+      <h4>Town resources</h4>
+      <ul>
+        <li><a href="https://www.suffieldct.gov" target="_blank" rel="noopener">Town of Suffield</a></li>
+        <li><a href="https://www.suffield-library.org" target="_blank" rel="noopener">Kent Memorial Library</a></li>
+        <li><a href="https://www.suffield.org" target="_blank" rel="noopener">Public Schools</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="wrap fine">
+    Built with Astro &amp; Leaflet · A community demonstration project, not affiliated with the Town of Suffield.
+    Map data &copy; OpenStreetMap contributors.
+  </div>
+</footer>

@@ -1,0 +1,100 @@
+---
+import { url } from '../../lib/url.js';
+import Layout from '../../layouts/Layout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import SiteFooter from '../../components/SiteFooter.astro';
+import ResourceCard from '../../components/ResourceCard.astro';
+import { resources, categoryMap } from '../../data/resources.js';
+
+export function getStaticPaths() {
+  return resources.map((item) => ({ params: { slug: item.slug }, props: { item } }));
+}
+
+const { item } = Astro.props;
+const cat = categoryMap[item.category];
+const host = item.website ? item.website.replace(/^https?:\/\//, '').replace(/\/$/, '') : null;
+const related = resources.filter((r) => r.category === item.category && r.slug !== item.slug).slice(0, 3);
+---
+<Layout title={`${item.name} · Suffield Community Guide`} description={item.description}>
+  <SiteHeader />
+
+  <section class="detail-hero">
+    <div class="wrap">
+      <p class="crumb"><a href={url()}>Home</a> <span>›</span> <a href={url(`#${cat.id}`)}>{cat.label}</a> <span>›</span> {item.name}</p>
+      <span class="detail-cat" style={`background:${cat.hue}`}>{cat.icon} {cat.label}</span>
+      <h1>{item.name}</h1>
+      <p>{item.description}</p>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <div class="detail-body">
+      <div class="detail-main">
+        <p>{item.long || item.description}</p>
+        {Array.isArray(item.coords) && (
+          <>
+            <h3>Location</h3>
+            <div id="detail-map" data-lat={item.coords[0]} data-lng={item.coords[1]} data-hue={cat.hue} data-name={item.name}></div>
+          </>
+        )}
+      </div>
+
+      <aside>
+        <div class="info-card">
+          <div class="rows">
+            {item.address && (
+              <div class="row"><span class="ri">📍</span><span><span class="k">Address</span>{item.address}</span></div>
+            )}
+            {item.phone && (
+              <div class="row"><span class="ri">📞</span><span><span class="k">Phone</span><a href={`tel:${item.phone.replace(/[^0-9]/g, '')}`}>{item.phone}</a></span></div>
+            )}
+            {host && (
+              <div class="row"><span class="ri">🔗</span><span><span class="k">Website</span><a href={item.website} target="_blank" rel="noopener">{host}</a></span></div>
+            )}
+            {item.meta && (
+              <div class="row"><span class="ri">🕑</span><span><span class="k">Hours</span>{item.meta}</span></div>
+            )}
+          </div>
+          {item.address && (
+            <a class="btn" href={`https://maps.google.com/?q=${encodeURIComponent(item.address)}`} target="_blank" rel="noopener">Get directions</a>
+          )}
+          {item.website && (
+            <a class="btn" style="background:var(--gold-deep)" href={item.website} target="_blank" rel="noopener">Visit website</a>
+          )}
+          {item.unverified && <div class="detail-note">⚠︎ {item.unverified}</div>}
+        </div>
+      </aside>
+    </div>
+
+    {related.length > 0 && (
+      <section class="related section">
+        <h2>More in {cat.label}</h2>
+        <div class="grid">
+          {related.map((r) => <ResourceCard item={r} />)}
+        </div>
+      </section>
+    )}
+  </div>
+
+  <SiteFooter />
+
+  <script>
+    import L from 'leaflet';
+    import 'leaflet/dist/leaflet.css';
+    const el = document.getElementById('detail-map');
+    if (el) {
+      const lat = parseFloat(el.dataset.lat);
+      const lng = parseFloat(el.dataset.lng);
+      const hue = el.dataset.hue;
+      const map = L.map(el, { scrollWheelZoom: false, zoomControl: true }).setView([lat, lng], 15);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19, attribution: '&copy; OpenStreetMap contributors',
+      }).addTo(map);
+      const icon = L.divIcon({
+        className: '', html: `<div class="pin" style="background:${hue}"></div>`,
+        iconSize: [24, 24], iconAnchor: [12, 24], popupAnchor: [0, -22],
+      });
+      L.marker([lat, lng], { icon }).addTo(map).bindPopup(el.dataset.name);
+    }
+  </script>
+</Layout>

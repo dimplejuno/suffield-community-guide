@@ -1,0 +1,111 @@
+---
+import Layout from '../layouts/Layout.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import Crest from '../components/Crest.astro';
+import CategoryCover from '../components/CategoryCover.astro';
+import ResourceCard from '../components/ResourceCard.astro';
+import MapView from '../components/MapView.astro';
+import { categories, resources } from '../data/resources.js';
+
+const byCategory = (id) => resources.filter((r) => r.category === id);
+const mapped = resources.filter((r) => Array.isArray(r.coords)).length;
+---
+<Layout>
+  <SiteHeader />
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="wrap hero-inner">
+      <div class="hero-text">
+        <span class="eyebrow">Suffield, Connecticut · Settled 1670</span>
+        <h1>Find your way around town.</h1>
+        <p>
+          A friendly directory of the organizations, offices, schools, and gathering
+          places that make Suffield work — for neighbors, newcomers, and volunteers alike.
+        </p>
+        <label class="search-box">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path>
+          </svg>
+          <input id="search" type="text" placeholder="Search library, food pantry, schools…" autocomplete="off" />
+        </label>
+        <div class="hero-stats">
+          <div><b>{resources.length}</b><span>listed resources</span></div>
+          <div><b>{categories.length}</b><span>categories</span></div>
+          <div><b>{mapped}</b><span>on the map</span></div>
+        </div>
+      </div>
+      <div class="hero-crest"><Crest size={168} /></div>
+    </div>
+  </section>
+
+  <!-- Map -->
+  <section class="map-section" id="map-section">
+    <div class="wrap">
+      <MapView />
+    </div>
+  </section>
+
+  <!-- Category filter chips -->
+  <div class="wrap">
+    <div class="chips" id="chips">
+      <button class="chip active" data-filter="all">All</button>
+      {categories.map((c) => (
+        <button class="chip" data-filter={c.id}>{c.icon} {c.label}</button>
+      ))}
+    </div>
+  </div>
+
+  <!-- Sections -->
+  <main class="wrap" id="sections">
+    {categories.map((c) => (
+      <section class="section" data-section={c.id}>
+        <CategoryCover cat={c} count={byCategory(c.id).length} />
+        <p class="section-blurb">{c.blurb}</p>
+        <div class="grid">
+          {byCategory(c.id).map((item) => <ResourceCard item={item} />)}
+        </div>
+      </section>
+    ))}
+    <p class="no-results" id="noResults">No resources match your search. Try another term.</p>
+  </main>
+
+  <SiteFooter />
+
+  <script>
+    const search = document.getElementById('search');
+    const chips = document.querySelectorAll('.chip');
+    const sections = document.querySelectorAll('[data-section]');
+    const noResults = document.getElementById('noResults');
+    let activeFilter = 'all';
+
+    function apply() {
+      const q = (search.value || '').trim().toLowerCase();
+      let anyVisible = false;
+      sections.forEach((section) => {
+        const cat = section.getAttribute('data-section');
+        const catAllowed = activeFilter === 'all' || activeFilter === cat;
+        let sectionHas = false;
+        section.querySelectorAll('.card').forEach((card) => {
+          const matchesQ = !q || card.getAttribute('data-search').includes(q);
+          const show = catAllowed && matchesQ;
+          card.style.display = show ? '' : 'none';
+          if (show) { sectionHas = true; anyVisible = true; }
+        });
+        section.style.display = sectionHas ? '' : 'none';
+      });
+      noResults.style.display = anyVisible ? 'none' : 'block';
+    }
+
+    search.addEventListener('input', apply);
+    chips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        chips.forEach((c) => c.classList.remove('active'));
+        chip.classList.add('active');
+        activeFilter = chip.getAttribute('data-filter');
+        apply();
+      });
+    });
+  </script>
+</Layout>

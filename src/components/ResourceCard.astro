@@ -1,0 +1,29 @@
+---
+import { url } from '../lib/url.js';
+import { categoryMap } from '../data/resources.js';
+const { item } = Astro.props;
+const cat = categoryMap[item.category];
+const host = item.website ? item.website.replace(/^https?:\/\//, '').replace(/\/$/, '') : null;
+const searchText = [item.name, item.description, item.address].filter(Boolean).join(' ').toLowerCase();
+---
+<a class="card" href={url(`resource/${item.slug}/`)} data-category={item.category} data-search={searchText}>
+  <span class="card-stripe" style={`background:${cat.hue}`}></span>
+  <div class="card-body">
+    <h3>{item.name}</h3>
+    <p class="desc">{item.description}</p>
+    <div class="rows">
+      {item.address && (
+        <div class="row"><span class="ri">📍</span><span>{item.address}</span></div>
+      )}
+      {item.phone && (
+        <div class="row"><span class="ri">📞</span><span>{item.phone}</span></div>
+      )}
+      {host && (
+        <div class="row"><span class="ri">🔗</span><span>{host}</span></div>
+      )}
+    </div>
+    {item.meta && <div class="meta">🕑 {item.meta}</div>}
+    {item.unverified && <div class="note">⚠︎ {item.unverified}</div>}
+    <span class="cta">View details <span aria-hidden="true">→</span></span>
+  </div>
+</a>

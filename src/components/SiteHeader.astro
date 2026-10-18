@@ -1,0 +1,20 @@
+---
+import { url } from '../lib/url.js';
+import Crest from './Crest.astro';
+import { categories } from '../data/resources.js';
+---
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href={url()}>
+      <Crest size={42} />
+      <span>
+        <b>Suffield Community Guide</b>
+        <span>A Watchful Messenger</span>
+      </span>
+    </a>
+    <nav class="header-nav">
+      {categories.map((c) => <a href={url(`#${c.id}`)}>{c.label}</a>)}
+      <a class="map-link" href={url('#map-section')}>🗺 Map</a>
+    </nav>
+  </div>
+</header>

@@ -1,0 +1,52 @@
+---
+import { resources, categories, categoryMap, TOWN_CENTER } from '../data/resources.js';
+const points = resources
+  .filter((r) => Array.isArray(r.coords))
+  .map((r) => ({
+    slug: r.slug, name: r.name, cat: r.category,
+    hue: categoryMap[r.category].hue, coords: r.coords, address: r.address || '',
+  }));
+const mapData = { points, center: TOWN_CENTER };
+---
+<div class="map-shell">
+  <div id="map" data-map={JSON.stringify(mapData)}></div>
+  <div class="map-legend">
+    {categories.map((c) => (
+      <span><i style={`background:${c.hue}`}></i>{c.label}</span>
+    ))}
+  </div>
+</div>
+
+<script>
+  import L from 'leaflet';
+  import 'leaflet/dist/leaflet.css';
+  import { url } from '../lib/url.js';
+
+  const el = document.getElementById('map');
+  if (el && el.dataset.map) {
+    const { points, center } = JSON.parse(el.dataset.map);
+    const map = L.map('map', { scrollWheelZoom: false }).setView(center, 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors',
+    }).addTo(map);
+
+    const bounds = [];
+    for (const p of points) {
+      const icon = L.divIcon({
+        className: '',
+        html: `<div class="pin" style="background:${p.hue}"></div>`,
+        iconSize: [24, 24],
+        iconAnchor: [12, 24],
+        popupAnchor: [0, -22],
+      });
+      L.marker(p.coords, { icon }).addTo(map).bindPopup(
+        `<b>${p.name}</b><br>${p.address ? p.address + '<br>' : ''}` +
+        `<a href="${url(`resource/${p.slug}/`)}">View details &rarr;</a>`
+      );
+      bounds.push(p.coords);
+    }
+    if (bounds.length) map.fitBounds(bounds, { padding: [40, 40] });
+    setTimeout(() => map.invalidateSize(), 200);
+  }
+</script>

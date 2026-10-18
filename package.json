@@ -1,0 +1,17 @@
+{
+  "name": "suffield-community-guide",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "A community resource guide for Suffield, Connecticut — built with Astro.",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "astro": "^4.16.0",
+    "leaflet": "^1.9.4"
+  }
+}
